@@ -1,5 +1,6 @@
 package org.example.app.persistence;
 
+import org.example.app.config.ConfigDb;
 import org.example.app.model.*;
 import org.example.app.repository.*;
 import java.sql.*;
@@ -12,25 +13,22 @@ public class JdbcOrderRepository implements OrderRepository {
 
     private static final Logger LOGGER = Logger.getLogger(JdbcOrderRepository.class.getName());
 
-    private final String url;
-    private final String username;
-    private final String password;
     private final UserRepository userRepository;
     private final CarRepository carRepository;
+    private final ConfigDb configDb;
 
-    public JdbcOrderRepository(String url, String username, String password, UserRepository userRepository, CarRepository carRepository) {
-        this.url = url;
-        this.username = username;
-        this.password = password;
+    public JdbcOrderRepository( UserRepository userRepository, CarRepository carRepository, ConfigDb configDb) {
+       
         this.userRepository = userRepository;
         this.carRepository = carRepository;
+        this.configDb = configDb;
     }
 
     @Override
     public void save(Order order) {
         String sql = "INSERT INTO ylabhw.orders (customer_id, car_id, order_date, type, status) VALUES (?, ?, ?, ?, ?)";
     
-        try (Connection connection = DriverManager.getConnection(url, username, password);
+        try (Connection connection = configDb.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
     
             statement.setInt(1, order.getCustomer().getId());
@@ -51,8 +49,8 @@ public class JdbcOrderRepository implements OrderRepository {
     public Order findById(int orderId) {
         String sql = "SELECT * FROM ylabhw.orders WHERE id = ?";
 
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = configDb.getConnection();
+        PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, orderId);
 
@@ -72,7 +70,7 @@ public class JdbcOrderRepository implements OrderRepository {
         String sql = "SELECT * FROM ylabhw.orders";
 
         List<Order> orders = new ArrayList<>();
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(sql)) {
 
@@ -89,7 +87,7 @@ public class JdbcOrderRepository implements OrderRepository {
     public void update(Order order) {
         String sql = "UPDATE ylabhw.orders SET customer_id = ?, car_id = ?, order_date = ?, type = ?, status = ? WHERE id = ?";
 
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, order.getCustomer().getId());
@@ -109,7 +107,7 @@ public class JdbcOrderRepository implements OrderRepository {
     public void delete(int id) {
         String sql = "DELETE FROM ylabhw.orders WHERE id = ?";
 
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, id);

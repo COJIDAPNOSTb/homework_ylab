@@ -5,10 +5,10 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="3" author="Zorin">
-        <delete tableName="orders"/>
-        <delete tableName="cars"/>
-        <delete tableName="users"/>
+    <changeSet id="4" author="Zorin">
+        <delete schemaName="ylabhw" tableName="orders"/>
+        <delete schemaName="ylabhw" tableName="cars"/>
+        <delete schemaName="ylabhw" tableName="users"/>
     </changeSet>
     
 </databaseChangeLog>

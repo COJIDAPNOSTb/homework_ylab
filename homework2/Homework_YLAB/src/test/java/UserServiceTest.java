@@ -1,4 +1,4 @@
-
+import org.example.app.config.ConfigDb;
 import org.example.app.model.Role;
 import org.example.app.model.User;
 import org.example.app.persistence.JdbcUserRepository;
@@ -8,11 +8,10 @@ import org.example.app.repository.UserRepository;
 
 
 import org.junit.jupiter.api.*;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
+
 import org.testcontainers.junit.jupiter.Testcontainers;
 import java.sql.Connection;
-import java.sql.DriverManager;
+
 import java.sql.Statement;
 import java.util.Optional;
 
@@ -24,13 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Testcontainers
 @DisplayName("Тесты пользовательского сервиса")
-public class UserServiceTest {
+public class UserServiceTest extends ContainerTest {
 
-    @Container
-    public PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:13")
-            .withDatabaseName("testdb")
-            .withUsername("testuser")
-            .withPassword("testpass");
+
 
     private UserRepository userRepository;
 
@@ -39,12 +34,12 @@ public class UserServiceTest {
         String url = postgresContainer.getJdbcUrl();
         String username = postgresContainer.getUsername();
         String password = postgresContainer.getPassword();
+        ConfigDb config = new ConfigDb(url,username,password);
 
-     
-        Connection connection = DriverManager.getConnection(url, username, password);
+        Connection connection = config.getConnection();
 
-    
-        userRepository = new JdbcUserRepository(url, username, password);
+
+        userRepository = new JdbcUserRepository(config);
 
 
         try (Statement statement = connection.createStatement()) {

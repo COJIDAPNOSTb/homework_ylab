@@ -1,6 +1,7 @@
 package org.example.app.persistence;
 
 
+import org.example.app.config.ConfigDb;
 import org.example.app.model.Role;
 import org.example.app.model.User;
 import org.example.app.repository.UserRepository;
@@ -8,24 +9,25 @@ import org.example.app.repository.UserRepository;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JdbcUserRepository implements UserRepository {
 
-    private final String url;
-    private final String username;
-    private final String password;
+    private static final Logger LOGGER = Logger.getLogger(JdbcUserRepository.class.getName());
+    private final ConfigDb configDb;
+   
 
-    public JdbcUserRepository(String url, String username, String password) {
-        this.url = url;
-        this.username = username;
-        this.password = password;
+    public JdbcUserRepository(ConfigDb configDb) {
+   
+        this.configDb = configDb;
     }
-
+  
     @Override
     public void save(User user) {
         String sql = "INSERT INTO ylabhw.users (username, password, role) VALUES (?, ?, ?)";
 
-        try (Connection connection = DriverManager.getConnection(url, username, password);
+        try (Connection connection = configDb.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, user.getUsername());
@@ -35,7 +37,7 @@ public class JdbcUserRepository implements UserRepository {
             statement.executeUpdate();
         }catch(SQLException e)
         {
-            e.printStackTrace();
+             LOGGER.log(Level.SEVERE, "Error saving user", e);
         }
     }
 
@@ -43,7 +45,7 @@ public class JdbcUserRepository implements UserRepository {
     public User findByUsername(String username)  {
         String sql = "SELECT * FROM ylabhw.users WHERE username = ?";
 
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, username);
@@ -55,7 +57,7 @@ public class JdbcUserRepository implements UserRepository {
             }
         }catch(SQLException e)
         {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error finding user by username", e);
         }
         return null;
     }
@@ -64,7 +66,7 @@ public class JdbcUserRepository implements UserRepository {
     public List<User> findAll()  {
         String sql = "SELECT * FROM ylabhw.users";
 
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(sql)) {
 
@@ -75,7 +77,7 @@ public class JdbcUserRepository implements UserRepository {
             return users;
         }catch(SQLException e)
         {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error finding all users", e);
         }
         return null;
     }
@@ -84,7 +86,7 @@ public class JdbcUserRepository implements UserRepository {
     public void update(User user)  {
         String sql = "UPDATE ylabhw.users SET username = ?, password = ?, role = ? WHERE id = ?";
 
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, user.getUsername());
@@ -95,7 +97,7 @@ public class JdbcUserRepository implements UserRepository {
             statement.executeUpdate();
         }catch(SQLException e)
         {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error updating user", e);
         }
     }
 
@@ -103,7 +105,7 @@ public class JdbcUserRepository implements UserRepository {
     public void delete(int id) {
         String sql = "DELETE FROM ylabhw.users WHERE id = ?";
 
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, id);
@@ -111,7 +113,7 @@ public class JdbcUserRepository implements UserRepository {
              
         }catch(SQLException e)
         {  
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error deleting user", e);
             
         }
       
@@ -127,7 +129,7 @@ public class JdbcUserRepository implements UserRepository {
         catch(SQLException e)
         {
         
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error mapping row to user", e);
         }
         return null;
     }
@@ -136,7 +138,7 @@ public class JdbcUserRepository implements UserRepository {
     public User findById(int userId) {
         String sql = "SELECT * FROM ylabhw.users WHERE id = ?";
 
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, userId);
@@ -147,7 +149,7 @@ public class JdbcUserRepository implements UserRepository {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error finding user by id", e);
         }
         return null;
     }

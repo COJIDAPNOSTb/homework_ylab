@@ -2,7 +2,7 @@ package org.example;
 
 import org.example.app.persistence.*;
 import org.example.app.config.ConfigDb;
-import org.example.app.model.*;
+
 import org.example.app.repository.*;
 import org.example.app.service.CarService;
 import org.example.app.service.OrderService;
@@ -11,41 +11,50 @@ import org.example.in.ConsoleController;
 import org.example.in.UserInput;
 import org.example.out.ConsoleView;
 
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.LiquibaseException;
+import liquibase.resource.ClassLoaderResourceAccessor;
+
 import java.sql.Connection;
-import java.sql.DriverManager;
+
 import java.sql.SQLException;
 
 public class Main {
-     public static void main(String[] args) {
-        // Настройки подключения к базе данных
+     public static void main(String[] args) throws LiquibaseException {
         ConfigDb config = new ConfigDb();
 
-        // Используем конфигурацию для подключения к базе данных
-        String url = config.getDbUrl();
-        String username = config.getDbUsername();
-        String password = config.getDbPassword();
 
-        try (Connection connection = DriverManager.getConnection(url, username, password)) {
-            // Создание репозиториев
-            UserRepository userRepository = new JdbcUserRepository(url, username, password);
-            CarRepository carRepository = new JdbcCarRepository(url, username, password);
-            OrderRepository orderRepository = new JdbcOrderRepository(url, username, password, userRepository, carRepository);
-
-                   UserInput userInput = new UserInput() {
-        @SuppressWarnings("resource")
-        @Override
-        public int getIntInput() {
+        try (Connection connection = config.getConnection()) {
+            Database database = DatabaseFactory.getInstance()
+                .findCorrectDatabaseImplementation(new JdbcConnection(connection));
+                Liquibase liquibase = new Liquibase("db/changelog/db.changelog-main.xml", 
+                new ClassLoaderResourceAccessor(), database);
+            liquibase.update(""); 
             
-            return new java.util.Scanner(System.in).nextInt();
-        }
+            UserRepository userRepository = new JdbcUserRepository(config);
 
-        @SuppressWarnings("resource")
-        @Override
-        public String getStringInput() {
+            CarRepository carRepository = new JdbcCarRepository(config);
 
-            return new java.util.Scanner(System.in).nextLine();
-        }
-    };
+            OrderRepository orderRepository = new JdbcOrderRepository(userRepository, carRepository, config);
+
+            UserInput userInput = new UserInput() {
+            @SuppressWarnings("resource")
+            @Override
+            public int getIntInput() {
+                
+                return new java.util.Scanner(System.in).nextInt();
+            }
+
+            @SuppressWarnings("resource")
+            @Override
+            public String getStringInput() {
+
+                return new java.util.Scanner(System.in).nextLine();
+            }
+            };
 
             UserService userService = new UserService(userRepository);
             CarService carService = new CarService(carRepository,userService);

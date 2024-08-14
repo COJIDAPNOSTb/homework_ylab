@@ -2,6 +2,7 @@ package org.example.app.persistence;
 
 
 
+import org.example.app.config.ConfigDb;
 import org.example.app.model.Car;
 import org.example.app.repository.CarRepository;
 
@@ -14,27 +15,21 @@ import java.util.logging.Logger;
 public class JdbcCarRepository implements CarRepository {
 
     private static final Logger LOGGER = Logger.getLogger(JdbcCarRepository.class.getName());
-
-    private final String url;
-    private final String username;
-    private final String password;
+    private final ConfigDb configDb;
     /**
      * Конструктор
-     * @param url ссылка
-     * @param username логин
-     * @param password пароль
+     * @param configDb конфигурация подключения к базе данных
+ 
      */
-    public JdbcCarRepository(String url, String username, String password) {
-        this.url = url;
-        this.username = username;
-        this.password = password;
+    public JdbcCarRepository(ConfigDb configDb) {
+        this.configDb = configDb;
     }
 
     @Override
     public void save(Car car) {
         String sql = "INSERT INTO ylabhw.cars (brand, model, year, price, condition) VALUES (?, ?, ?, ?, ?)";
 
-        try (Connection connection = DriverManager.getConnection(url, username, password);
+        try (Connection connection = configDb.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, car.getBrand());
@@ -53,7 +48,7 @@ public class JdbcCarRepository implements CarRepository {
     public Car findById(int carId) {
         String sql = "SELECT * FROM ylabhw.cars WHERE id = ?";
 
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, carId);
@@ -74,7 +69,7 @@ public class JdbcCarRepository implements CarRepository {
         String sql = "SELECT * FROM ylabhw.cars";
 
         List<Car> cars = new ArrayList<>();
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(sql)) {
 
@@ -91,7 +86,7 @@ public class JdbcCarRepository implements CarRepository {
     public void update(Car car) {
         String sql = "UPDATE ylabhw.cars SET brand = ?, model = ?, year = ?, price = ?, condition = ? WHERE id = ?";
 
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setString(1, car.getBrand());
@@ -113,7 +108,7 @@ public class JdbcCarRepository implements CarRepository {
     public void delete(int id) {
         String sql = "DELETE FROM ylabhw.cars WHERE id = ?";
 
-        try (Connection connection = DriverManager.getConnection(url, this.username, this.password);
+        try (Connection connection = configDb.getConnection();
             PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, id);

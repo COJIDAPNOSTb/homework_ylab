@@ -5,7 +5,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <changeSet id="4" author="Zorin">
+    <changeSet id="3" author="Zorin">
 
      
        <insert schemaName="ylabhw" tableName="users">
@@ -37,8 +37,8 @@
 
         <!-- Вставка заказа -->
         <insert schemaName="ylabhw" tableName="orders">
-            <column name="customer_id" valueComputed="(SELECT id FROM users WHERE username = 'customer')"/>
-            <column name="car_id" valueComputed="(SELECT id FROM cars WHERE model = 'X5')"/>
+            <column name="customer_id" valueComputed="(SELECT id FROM ylabhw.users WHERE username = 'customer')"/>
+            <column name="car_id" valueComputed="(SELECT id FROM ylabhw.cars WHERE model = 'X5')"/>
             <column name="order_date" value="2024-08-10 23:17:00"/>
             <column name="type" value="Purchase"/>
             <column name="status" value="Pending"/>
