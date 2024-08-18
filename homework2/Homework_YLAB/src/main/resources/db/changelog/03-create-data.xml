@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="3" author="Zorin">
+
+     
+       <insert schemaName="ylabhw" tableName="users">
+            <column name="username" value="admin"/>
+            <column name="password" value="adminpass"/>
+            <column name="role" value="ADMIN"/>
+        </insert>
+
+        <insert schemaName="ylabhw" tableName="users">
+            <column name="username" value="manager"/>
+            <column name="password" value="managerpass"/>
+            <column name="role" value="MANAGER"/>
+        </insert>
+
+        <insert schemaName="ylabhw" tableName="users">
+            <column name="username" value="customer"/>
+            <column name="password" value="customerpass"/>
+            <column name="role" value="CUSTOMER"/>
+        </insert>
+
+     
+        <insert schemaName="ylabhw" tableName="cars">
+            <column name="brand" value="BMW"/>
+            <column name="model" value="X5"/>
+            <column name="year" value="2021"/>
+            <column name="price" value="50000.00"/>
+            <column name="condition" value="New"/>
+        </insert> 
+
+        <!-- Вставка заказа -->
+        <insert schemaName="ylabhw" tableName="orders">
+            <column name="customer_id" valueComputed="(SELECT id FROM ylabhw.users WHERE username = 'customer')"/>
+            <column name="car_id" valueComputed="(SELECT id FROM ylabhw.cars WHERE model = 'X5')"/>
+            <column name="order_date" value="2024-08-10 23:17:00"/>
+            <column name="type" value="Purchase"/>
+            <column name="status" value="Pending"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>
