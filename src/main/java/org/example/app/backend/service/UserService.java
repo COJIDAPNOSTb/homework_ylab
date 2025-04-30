@@ -32,7 +32,6 @@ public class UserService{
 
     private final ObjectMapper objectMapper;
 
-    // Для шифрования паролей, вам нужно добавить это
     private final PasswordEncoder passwordEncoder;
 
     public Page<UserDto> getAll(Pageable pageable) {

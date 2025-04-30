@@ -36,14 +36,13 @@ public class UserController {
         return userService.getMany(ids);
     }
 
-    // Новый метод для создания пользователя с паролем
+
     @PostMapping
     public UserDto create(@RequestBody(required = false) UserCreateDto dto) {
         return userService.create(dto);
     }
 
-    // Вы можете либо удалить старый метод, либо изменить путь для разделения
-    // Вариант с разделением путей:
+
     @PostMapping("/legacy")
     @Deprecated
     public UserDto createLegacy(@Nullable @RequestBody(required = false) UserDto dto) {
