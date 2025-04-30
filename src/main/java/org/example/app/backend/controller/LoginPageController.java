@@ -14,8 +14,8 @@ public class LoginPageController {
         return "home";
     }
 
-    @GetMapping("/register")
-    public String registerPage() {
-        return "register";  // Это HTML-страница для регистрации
-    }
+//    @GetMapping("/register")
+//    public String registerPage() {
+//        return "register";
+//    }
 }

@@ -52,11 +52,10 @@ public class UserService{
                 .toList();
     }
 
-    // Изменяем метод create для работы с UserCreateDto
     public UserDto create(UserCreateDto createDto) {
         User user = userMapper.toEntity(createDto);
 
-        // Шифруем пароль перед сохранением
+
         if (user.getPassword() != null) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
@@ -65,7 +64,6 @@ public class UserService{
         return userMapper.toUserDto(resultUser);
     }
 
-    // Оставляем старый метод для обратной совместимости, но помечаем его устаревшим
     @Deprecated
     public UserDto create(@Nullable UserDto dto) {
         User user = userMapper.toEntity(dto);

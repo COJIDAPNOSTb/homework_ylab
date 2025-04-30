@@ -2,10 +2,14 @@ package org.example.app.backend.config;
 
 import lombok.RequiredArgsConstructor;
 
+import org.example.app.backend.security.JwtAuthenticationEntryPoint;
+import org.example.app.backend.security.JwtAuthenticationFilter;
+import org.example.app.backend.security.JwtTokenProvider;
 import org.example.app.backend.service.CustomUserDetailsService;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 
@@ -13,11 +17,11 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
 @Configuration
@@ -26,24 +30,38 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtTokenProvider jwtTokenProvider;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable()) // Отключаем CSRF для API
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/auth/register", "/css/**", "/js/**", "/home").permitAll()
+
+                        .requestMatchers("/login", "/auth/**", "/css/**", "/js/**", "/home").permitAll()
+
+                        .requestMatchers("/api/**", "/rest/**").authenticated()
+
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(login -> login
-                        .loginPage("/login")  // URL формы логина
-                        .defaultSuccessUrl("/home", true) // Успешный логин редиректит на /home
-                        .permitAll() // Разрешить доступ ко всем
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/home", true)
+                        .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout") // После выхода редирект на страницу логина
+                        .logoutSuccessUrl("/login?logout")
                 )
-                .userDetailsService(userDetailsService) // Используем кастомный UserDetailsService
+
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
+
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService),
+                        UsernamePasswordAuthenticationFilter.class)
+                .userDetailsService(userDetailsService)
                 .build();
     }
     @Bean
@@ -62,5 +80,48 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+    @Bean
+    @Order(1)
+    public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher("/api/**", "/rest/**", "/auth/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/login", "/auth/register").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) 
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService),
+                        UsernamePasswordAuthenticationFilter.class)
+                .build();
+    }
+
+
+    @Bean
+    @Order(2)
+    public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher("/**")
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/css/**", "/js/**", "/home").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .formLogin(login -> login
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/home", true)
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                )
+                .userDetailsService(userDetailsService)
+                .build();
     }
 }
