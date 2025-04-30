@@ -19,7 +19,7 @@ public class HomeworkFullApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(HomeworkFullApplication.class, args);
-        System.out.println(UUID.randomUUID());
+       
     }
 
 
